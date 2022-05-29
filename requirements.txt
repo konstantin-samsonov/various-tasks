@@ -1,0 +1,5 @@
+jupyter
+pandas
+catboost
+plotly
+shap
