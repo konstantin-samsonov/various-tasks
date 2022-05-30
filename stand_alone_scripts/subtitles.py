@@ -1,16 +1,13 @@
 """
-Converting files with subtitles to txt format for further loading into Quizlet cards.
+Convert subtitle or txt files to upload to Quizlet cards.
 The resulting file contains unique words from subtitles with translation into Russian.
 """
-
 
 import os
 import re
 from sklearn.feature_extraction.text import CountVectorizer
 from modules.gcp_translate import translate_text
 import tqdm
-
-PATH = '../data/mandalorian_se_01/'
 
 
 def get_file_name(path):
@@ -58,11 +55,14 @@ def main(path, out_file_name):
         result[i] = translate_text(i)
 
     # save file
-    f = open(f'{out_file_name}.txt', 'w')
+    f = open(f'{path}{out_file_name}_edit.txt', 'w')
     for key, val in result.items():
         f.write(f'{key} - {val}\n')
     f.close()
 
 
 if __name__ == '__main__':
-    main(PATH, 'mandalorian_se01_all_keywords')
+    main(
+        path='../data/python_for_data/',
+        out_file_name='24_hypothesis_testing',
+    )
