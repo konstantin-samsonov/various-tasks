@@ -4,6 +4,13 @@ from modules.gcp_sheets import download_sheet, upload_sheet
 from tqdm import tqdm
 
 
+def get_raw_word(start, stop):
+    sheets_file = 'https://docs.google.com/spreadsheets/d/1gEjFuNyljZ9eS4iWZuLZ4dKkBdltd7R2l-9xAId54Ho/edit#gid=1079817712'
+    sheets_list = 'raw_data'
+    data = download_sheet(sheets_file, sheets_list)
+    # result = data['word'][start:stop].tolist()
+    return data
+
 
 def get_data(word):
     """Returns json data by words"""
@@ -34,6 +41,11 @@ def get_data(word):
     if params['method'] == 'POST':
         result = requests.post(url, headers=headers, body=body)
         return result.json()
+
+
+def get_part_speech(data):
+    target = data['en-ru']['regular'][0]['pos']['tooltip']
+    return target
 
 
 def get_translate(data):
@@ -77,23 +89,38 @@ def get_translate(data):
         else:
             return f'{translate}', f'[ - ];'
 
-def get_raw_word(start, stop):
-    sheets_file = 'https://docs.google.com/spreadsheets/d/1gEjFuNyljZ9eS4iWZuLZ4dKkBdltd7R2l-9xAId54Ho/edit#gid=1079817712'
-    sheets_list = 'raw_data'
-    data = download_sheet(sheets_file, sheets_list)
-    result = data['word'][start:stop].tolist()
+
+def test(cell):
+    data = get_data(cell)
+    result = get_part_speech(data)
+
     return result
 
 
 if __name__ == '__main__':
-    raw_words = get_raw_word(0, 500)
-    for word in tqdm(raw_words):
-        try:
-            data = get_data(word)
-            translate, example = get_translate(data)
-            string = f"{word},{translate}\n{example}"
-            with open('../data/first_500_word.txt', 'a') as the_file:
-                the_file.write(f'{string}')
-        except:
-            print(word)
 
+    raw_words = get_raw_word(0, 500)
+
+    try:
+        raw_words['part_speech'] = raw_words['word'].apply(test)
+
+    except Exception as e:
+        print(f'{e}')
+
+    sheets_file = 'https://docs.google.com/spreadsheets/d/1gEjFuNyljZ9eS4iWZuLZ4dKkBdltd7R2l-9xAId54Ho/edit#gid=1079817712'
+    sheets_list = 'test'
+
+    raw_words = raw_words.astype('string')
+    upload_sheet(sheets_file, sheets_list, raw_words)
+    # for word in tqdm(raw_words['wor']):
+    #     try:
+    #         data = get_data(word)
+    #         result.append(get_part_speech(data))
+    #         # translate, example = get_translate(data)
+    #         # string = f"{word},{translate}\n{example}"
+    #         # with open('../data/first_500_word.txt', 'a') as the_file:
+    #         #     the_file.write(f'{string}')
+    #     except Exception as e:
+    #         print(f'{word} - {e}')
+    #
+    # print(result)
